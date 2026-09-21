@@ -101,11 +101,11 @@ PubkeyAuthentication yes
 # Don't read the user's ~/.rhosts and ~/.shosts files
 #IgnoreRhosts yes
 
-# To disable tunneled clear text passwords, change to "no" here!
+# To disable tunneled clear text passwords, change to \"no\" here!
 PasswordAuthentication no
 #PermitEmptyPasswords no
 
-# Change to "yes" to enable keyboard-interactive authentication.  Depending on
+# Change to \"yes\" to enable keyboard-interactive authentication.  Depending on
 # the system's configuration, this may involve passwords, challenge-response,
 # one-time passwords or some combination of these and other methods.
 # Beware issues with some PAM modules and threads.
@@ -128,7 +128,7 @@ KbdInteractiveAuthentication no
 # be allowed through the KbdInteractiveAuthentication and
 # PasswordAuthentication.  Depending on your PAM configuration,
 # PAM authentication via KbdInteractiveAuthentication may bypass
-# the setting of "PermitRootLogin prohibit-password".
+# the setting of \"PermitRootLogin prohibit-password\".
 # If you just want the PAM account and session checks to run without
 # PAM authentication, then enable this but set PasswordAuthentication
 # and KbdInteractiveAuthentication to 'no'.

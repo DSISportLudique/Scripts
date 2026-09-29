@@ -36,9 +36,13 @@ foreach ($User in $Users) {
 	$name = $($User.psobject.properties.value -split ';')[0]
 	$surname = $($User.psobject.properties.value -split ';')[1]
 	$service = $($User.psobject.properties.value -split ';')[2]
+	$fullname = $name + " " + $surname
+
     	$logname = $name -replace ' ', '_'
     	$logname += "." + $surname
 	$logname = $logname.ToLower()
+
+	$mail = $logname + "@blois.sportludique.fr"
 
 	Write-Host "nom: $name"
 	Write-Host "prenom: $surname"
@@ -48,17 +52,21 @@ foreach ($User in $Users) {
         $NewUserParams = @{
             Name                  = $name
             Surname               = $surname
-            Service               = $service
+	    DisplayName		  = $fullname
+	    EmailAddress 	  = $mail
+	    Path		  = "ou=$service,ou=BLO-Services,dc=blo,dc=blois,dc=sportludique,dc=fr"
+	    SamAccountName	  = $logname
+	    AccountPassword  	  = (ConvertTo-SecureString "$Password" -AsPlainText -Force)
             Enabled               = $true # Enable the User in the AD
             ChangePasswordAtLogon = $true # Set the "User must change password at next logon"
         }
 
-	if ( Get-ADOrganizationalUnit -Filter {Name -eq "$service"} ) {
-		Write-Host "This OU already exists"
+	if ( Get-ADOrganizationalUnit -Filter {Name -Like $service} ) {
+		Write-Host "The OU $service already exists"
 	}
 	else {
-		Write-Host "Creating OU: " + $service
-		New-ADOrganizationalUnit -Name $service -Path "DC=BLO\BLO-Services"
+		Write-Host Creating OU: $service
+		New-ADOrganizationalUnit -Name $service -ProtectedFromAccidentalDeletion $False -Path "ou=BLO-Services,dc=blo,dc=blois,dc=sportludique,dc=fr"
 	}
         # Check to see if the user already exists in AD
         if ( Get-ADUser -Filter {SamAccountName -eq "$logname"} ) {
@@ -66,12 +74,11 @@ foreach ($User in $Users) {
             # Give a warning if user exists
             Write-Host "A user with username $logname already exists in Active Directory." -ForegroundColor Yellow
         
-}
+	}
         else {
            # User does not exist then proceed to create the new user account
             # Account will be created in the OU provided by the $User.OU variable read from the CSV file
-	    # FIXME uncomment new aduser
-            #New-ADUser @NewUserParams
+            New-ADUser @NewUserParams
             Write-Host "The user $($logname) is created successfully." -ForegroundColor Green
         }
     }

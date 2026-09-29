@@ -18,8 +18,9 @@
 #>
 
 # Define the CSV file location and import the data
-$Csvfile = "C:\temp\ImportADUsers.csv"
+$Csvfile = "C:\blois.csv"
 $Users = Import-Csv $Csvfile
+Write-Host $Users
 
 # The password for the new user
 $Password = "P@ssw0rd1234"
@@ -31,28 +32,46 @@ Import-Module ActiveDirectory
 foreach ($User in $Users) {
     try {
 	# create a login name
-    	$logname = $User.'NOM' -replace ' ', '_'
-    	$logname += $User.'PRENOM'
+	Write-Host USER: $User
+	$name = $($User.psobject.properties.value -split ';')[0]
+	$surname = $($User.psobject.properties.value -split ';')[1]
+	$service = $($User.psobject.properties.value -split ';')[2]
+    	$logname = $name -replace ' ', '_'
+    	$logname += "." + $surname
+	$logname = $logname.ToLower()
 
+	Write-Host "nom: $name"
+	Write-Host "prenom: $surname"
+	Write-Host "logname: $logname"
+	Write-Host "service: $service"
         # Define the parameters using a hashtable
         $NewUserParams = @{
-            Name                  = $User.'PRENOM'
-            Surname               = $User.'NOM'
-            Service               = $User.'SERVICE'
+            Name                  = $name
+            Surname               = $surname
+            Service               = $service
             Enabled               = $true # Enable the User in the AD
             ChangePasswordAtLogon = $true # Set the "User must change password at next logon"
         }
 
+	if ( Get-ADOrganizationalUnit -Filter {Name -eq "$service"} ) {
+		Write-Host "This OU already exists"
+	}
+	else {
+		Write-Host "Creating OU: " + $service
+		New-ADOrganizationalUnit -Name $service -Path "DC=BLO\BLO-Services"
+	}
         # Check to see if the user already exists in AD
-        if (Get-ADUser -Filter "SamAccountName -eq '$($logname)'") {
+        if ( Get-ADUser -Filter {SamAccountName -eq "$logname"} ) {
 
             # Give a warning if user exists
-            Write-Host "A user with username $($logname) already exists in Active Directory." -ForegroundColor Yellow
-        }
+            Write-Host "A user with username $logname already exists in Active Directory." -ForegroundColor Yellow
+        
+}
         else {
-            # User does not exist then proceed to create the new user account
+           # User does not exist then proceed to create the new user account
             # Account will be created in the OU provided by the $User.OU variable read from the CSV file
-            New-ADUser @NewUserParams
+	    # FIXME uncomment new aduser
+            #New-ADUser @NewUserParams
             Write-Host "The user $($logname) is created successfully." -ForegroundColor Green
         }
     }
@@ -60,4 +79,7 @@ foreach ($User in $Users) {
         # Handle any errors that occur during account creation
         Write-Host "Failed to create user $($logname) - $($_.Exception.Message)" -ForegroundColor Red
     }
+}
+
+while ($true) {
 }

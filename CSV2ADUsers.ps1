@@ -30,11 +30,9 @@ Import-Module ActiveDirectory
 # Loop through each user
 foreach ($User in $Users) {
     try {
-        # Retrieve the Manager distinguished name
-        $managerDN = if ($User.'Manager UPN') {
-            Get-ADUser -Filter "UserPrincipalName -eq '$($User.'Manager UPN')'" -Properties UserPrincipalName |
-            Select-Object -ExpandProperty DistinguishedName
-        }
+	# create a login name
+    	$logname = $User.'NOM' -replace ' ', '_'
+    	$logname += $User.'PRENOM'
 
         # Define the parameters using a hashtable
         $NewUserParams = @{
@@ -45,26 +43,21 @@ foreach ($User in $Users) {
             ChangePasswordAtLogon = $true # Set the "User must change password at next logon"
         }
 
-        # Add the info attribute to OtherAttributes only if Notes field contains a value
-        if (![string]::IsNullOrEmpty($User.Notes)) {
-            $NewUserParams.OtherAttributes = @{info = $User.Notes }
-        }
-
         # Check to see if the user already exists in AD
-        if (Get-ADUser -Filter "SamAccountName -eq '$($User.'User logon name')'") {
+        if (Get-ADUser -Filter "SamAccountName -eq '$($logname)'") {
 
             # Give a warning if user exists
-            Write-Host "A user with username $($User.'User logon name') already exists in Active Directory." -ForegroundColor Yellow
+            Write-Host "A user with username $($logname) already exists in Active Directory." -ForegroundColor Yellow
         }
         else {
             # User does not exist then proceed to create the new user account
             # Account will be created in the OU provided by the $User.OU variable read from the CSV file
             New-ADUser @NewUserParams
-            Write-Host "The user $($User.'User logon name') is created successfully." -ForegroundColor Green
+            Write-Host "The user $($logname) is created successfully." -ForegroundColor Green
         }
     }
     catch {
         # Handle any errors that occur during account creation
-        Write-Host "Failed to create user $($User.'User logon name') - $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "Failed to create user $($logname) - $($_.Exception.Message)" -ForegroundColor Red
     }
 }

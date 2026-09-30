@@ -30,6 +30,7 @@ Import-Module ActiveDirectory
 
 # Loop through each user
 foreach ($User in $Users) {
+    # TODO: refactor: 8spaces tab + try catch only arount the creations: (the ifs)
     try {
 	# create a login name
 	Write-Host USER: $User

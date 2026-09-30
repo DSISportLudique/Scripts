@@ -51,7 +51,8 @@ foreach ($User in $Users) {
         # Define the parameters using a hashtable
         $NewUserParams = @{
             Name                  = $name
-            Surname               = $surname
+            Surname               = $name
+	    GivenName 		  = $surname
 	    DisplayName		  = $fullname
 	    EmailAddress 	  = $mail
 	    Path		  = "ou=$service,ou=BLO-Services,dc=blo,dc=blois,dc=sportludique,dc=fr"

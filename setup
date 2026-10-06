@@ -187,5 +187,5 @@ ff02::2 ip6-allrouters
 
 
 # Restart services
-systemctl restart sshd
-systemctl restart networking
+systemctl restart networking &
+systemctl restart sshd & 

@@ -9,14 +9,17 @@ mainaddress=$1
 manaaddress=$3
 gateway=$2
 
+# route
+if [[ "$mainaddress" =~ ^192.168.32 ]]; then
+	ip route add 172.28.32.0/19 via 192.168.32.1 dev ens18
+fi
+
 sshport=$(( $RANDOM % 1000 + 50000 ))
 echo $sshport
 
 hostname=$4
 # Append BLO- to hostname if it doesnt alr start with it
-if [[ "$hostname" =~ ^BLO- ]]; then
-	echo ""
-else 
+if ! [[ "$hostname" =~ ^BLO- ]]; then
 	hostname=BLO-$hostname
 	echo "hostname was changed  to $hostname"
 fi
@@ -184,5 +187,5 @@ ff02::2 ip6-allrouters
 
 
 # Restart services
-systemctl restart sshd
-systemctl restart networking
+systemctl restart networking &
+systemctl restart sshd & 

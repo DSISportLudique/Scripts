@@ -89,6 +89,3 @@ foreach ($User in $Users) {
         Write-Host "Failed to create user $($logname) - $($_.Exception.Message)" -ForegroundColor Red
     }
 }
-
-while ($true) {
-}

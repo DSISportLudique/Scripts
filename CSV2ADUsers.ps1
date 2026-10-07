@@ -34,14 +34,24 @@ foreach ($User in $Users) {
     try {
 	# create a login name
 	Write-Host USER: $User
-	$name = $($User.psobject.properties.value -split ';')[0]
+	$name = $($User.psobject.properties.value -split ';')[0] -replace ' ', '_'
 	$surname = $($User.psobject.properties.value -split ';')[1]
 	$service = $($User.psobject.properties.value -split ';')[2]
 	$fullname = $name + " " + $surname
 
-    	$logname = $name -replace ' ', '_'
-    	$logname += "." + $surname
+    	$logname = $name
+    	$logname += "." + $surname.Substring(0, [Math]::Min($surname.Length, 3))
 	$logname = $logname.ToLower()
+	Write-Host len $logname.Length
+	if ($logname.Length -gt 20) {
+		$logname = $name -replace '_', ''
+		$logname = $logname.ToLower()
+		#$logname += . + $surname.Substring(0, [Math]::Min($surname.Length, 3))
+
+		#if ($name.Length < 20) {
+		#	$logname = $name
+		#}
+	}
 
 	$mail = $logname + "@blois.sportludique.fr"
 
@@ -89,3 +99,5 @@ foreach ($User in $Users) {
         Write-Host "Failed to create user $($logname) - $($_.Exception.Message)" -ForegroundColor Red
     }
 }
+
+while ($true) {}

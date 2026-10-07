@@ -188,7 +188,8 @@ Subsystem	sftp	/usr/lib/openssh/sftp-server
 #	" > /etc/ssh/sshd_config
 
 
-# Restart services
-source /etc/profile
-systemctl restart networking &
-systemctl restart sshd & 
+# Restart everything after interaction 
+echo "type enter to reboot the server"
+while read; do
+	reboot
+done

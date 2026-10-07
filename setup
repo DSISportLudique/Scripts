@@ -9,10 +9,6 @@ mainaddress=$1
 manaaddress=$3
 gateway=$2
 
-# route
-if [[ "$mainaddress" =~ ^192.168.32 ]]; then
-	ip route add 172.28.32.0/19 via 192.168.32.1 dev ens18
-fi
 
 sshport=$(( $RANDOM % 1000 + 50000 ))
 echo $sshport
@@ -25,6 +21,15 @@ if ! [[ "$hostname" =~ ^BLO- ]]; then
 fi
 
 hostname $hostname
+echo "127.0.0.1	localhost
+127.0.1.1	$hostname
+
+# The following lines are desirable for IPv6 capable hosts
+::1     localhost ip6-localhost ip6-loopback
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+" > /etc/hosts
+echo "HOSTNAME=$hostname" >> /etc/profile
 
 echo "
 # This file describes the network interfaces available on your system
@@ -36,6 +41,11 @@ source /etc/network/interfaces.d/*
 auto lo
 iface lo inet loopback
 
+# Mana int
+allow-hotplug ens19
+iface ens19 inet static
+	address $manaaddress/24
+
 # The primary network interface
 allow-hotplug ens18
 iface ens18 inet static
@@ -44,10 +54,12 @@ iface ens18 inet static
 	# dns-* options are implemented by the resolvconf package, if installed
 	dns-nameservers 121.183.90.205
 
-allow-hotplug ens19
-iface ens19 inet static
-	address $manaaddress/24
 " > /etc/network/interfaces
+
+# route
+if [[ "$mainaddress" =~ ^192.168.32 ]]; then
+	echo "	up ip route add 172.28.32.0/19 via 192.168.32.1 dev ens18" >> /etc/network/interfaces
+fi
 
 echo "
 # This is the sshd server system-wide configuration file.  See
@@ -175,17 +187,8 @@ Subsystem	sftp	/usr/lib/openssh/sftp-server
 #	ForceCommand cvs server
 #	" > /etc/ssh/sshd_config
 
-echo "127.0.0.1	localhost
-127.0.1.1	$hostname
-
-# The following lines are desirable for IPv6 capable hosts
-::1     localhost ip6-localhost ip6-loopback
-ff02::1 ip6-allnodes
-ff02::2 ip6-allrouters
-" > /etc/hosts
-
-
 
 # Restart services
+source /etc/profile
 systemctl restart networking &
 systemctl restart sshd & 

@@ -9,10 +9,6 @@ mainaddress=$1
 manaaddress=$3
 gateway=$2
 
-# route
-if [[ "$mainaddress" =~ ^192.168.32 ]]; then
-	ip route add 172.28.32.0/19 via 192.168.32.1 dev ens18
-fi
 
 sshport=$(( $RANDOM % 1000 + 50000 ))
 echo $sshport
@@ -36,6 +32,11 @@ source /etc/network/interfaces.d/*
 auto lo
 iface lo inet loopback
 
+# Mana int
+allow-hotplug ens19
+iface ens19 inet static
+	address $manaaddress/24
+
 # The primary network interface
 allow-hotplug ens18
 iface ens18 inet static
@@ -44,10 +45,12 @@ iface ens18 inet static
 	# dns-* options are implemented by the resolvconf package, if installed
 	dns-nameservers 121.183.90.205
 
-allow-hotplug ens19
-iface ens19 inet static
-	address $manaaddress/24
 " > /etc/network/interfaces
+
+# route
+if [[ "$mainaddress" =~ ^192.168.32 ]]; then
+	echo "	up ip route add 172.28.32.0/19 via 192.168.32.1 dev ens18" >> /etc/network/interfaces
+fi
 
 echo "
 # This is the sshd server system-wide configuration file.  See

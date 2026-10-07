@@ -20,7 +20,6 @@
 # Define the CSV file location and import the data
 $Csvfile = "C:\blois.csv"
 $Users = Import-Csv $Csvfile
-Write-Host $Users
 
 # The password for the new user
 $Password = "P@ssw0rd1234"
@@ -42,15 +41,9 @@ foreach ($User in $Users) {
     	$logname = $name
     	$logname += "." + $surname.Substring(0, [Math]::Min($surname.Length, 3))
 	$logname = $logname.ToLower()
-	Write-Host len $logname.Length
 	if ($logname.Length -gt 20) {
 		$logname = $name -replace '_', ''
 		$logname = $logname.ToLower()
-		#$logname += . + $surname.Substring(0, [Math]::Min($surname.Length, 3))
-
-		#if ($name.Length < 20) {
-		#	$logname = $name
-		#}
 	}
 
 	$mail = $logname + "@blois.sportludique.fr"

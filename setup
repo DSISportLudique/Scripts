@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [[ $# -ne 4 ]]; then
+if [[ $# -ne 3 ]]; then
 	echo "usage: ./setup main-address mana-address HOSTNAME"
 	exit
 fi

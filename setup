@@ -1,26 +1,35 @@
 #!/usr/bin/env bash
 
 if [[ $# -ne 4 ]]; then
-	echo "usage: ./setup main-address gateway mana-address HOSTNAME"
+	echo "usage: ./setup main-address mana-address HOSTNAME"
 	exit
 fi
 
-mainaddress=$1
-manaaddress=$3
-gateway=$2
+getgw() {
+	for (( i=${#1}; i >= 0; i-- )); do
+		if [ "${1:$i:1}" = "." ]; then
+			# last octet done
+			echo "${1:0:$((i+1))}254"
+			break
+		fi 
+	done
+}
 
+mainaddress=$1
+manaaddress=$2
+gateway=$(getgw $mainaddress)
 
 sshport=$(( $RANDOM % 1000 + 50000 ))
 echo $sshport
 
-hostname=$4
+hostname=$3
 # Append BLO- to hostname if it doesnt alr start with it
 if ! [[ "$hostname" =~ ^BLO- ]]; then
 	hostname=BLO-$hostname
 	echo "hostname was changed  to $hostname"
 fi
 
-hostname $hostname
+echo "$hostname" > /etc/hostname
 echo "127.0.0.1	localhost
 127.0.1.1	$hostname
 

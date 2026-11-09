@@ -18,6 +18,7 @@ getgw() {
 mainaddress=$1
 manaaddress=$2
 gateway=$(getgw $mainaddress)
+dns=172.28.33.53
 
 sshport=$(( $RANDOM % 1000 + 50000 ))
 echo $sshport
@@ -27,6 +28,14 @@ hostname=$3
 if ! [[ "$hostname" =~ ^BLO- ]]; then
 	hostname=BLO-$hostname
 	echo "hostname was changed  to $hostname"
+fi
+
+# if in dmz
+if [[ "$mainaddress" =~ ^192.168.32 ]]; then
+	# route
+	echo "	up ip route add 172.28.32.0/19 via 192.168.32.1 dev ens18" >> /etc/network/interfaces
+	# dns
+	dns=192.168.32.53
 fi
 
 echo "$hostname" > /etc/hostname
@@ -61,14 +70,10 @@ iface ens18 inet static
 	address $mainaddress/24
 	gateway $gateway
 	# dns-* options are implemented by the resolvconf package, if installed
-	dns-nameservers 121.183.90.205
+	dns-nameservers $dns
 
 " > /etc/network/interfaces
 
-# route
-if [[ "$mainaddress" =~ ^192.168.32 ]]; then
-	echo "	up ip route add 172.28.32.0/19 via 192.168.32.1 dev ens18" >> /etc/network/interfaces
-fi
 
 echo "
 # This is the sshd server system-wide configuration file.  See

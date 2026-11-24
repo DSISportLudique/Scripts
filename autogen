@@ -1,0 +1,54 @@
+#/usr/bin/env bash
+
+if [[ $# -ne 2 ]]; then
+	echo "usage: ./autogen host-dns-name ssh-host"
+	exit
+fi
+
+host=$(ssh $2 "echo \$HOSTNAME")
+echo "host is: $host"
+
+ssh $2 "openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:3072 \
+	  -out \$HOSTNAME.key"
+echo "Generated $host.key"
+
+ssh $2 "cat >> /tmp/openssl.cnf <<EOF
+[ req ]
+prompt = no
+distinguished_name = req_distinguished_name
+
+[ req_distinguished_name ]
+C = FR
+ST = OUI
+L = BLOIS
+O = Sportludique-Blois
+OU = Sportludique
+CN = $1.blois.sportludique.fr
+emailAddress = kferrandon@gmail.com
+EOF"
+
+ssh $2 "openssl req 		\
+	-new -sha256 		\
+	-key \$HOSTNAME.key 	\
+	-out \$HOSTNAME.csr 	\
+	-addext \"subjectAltName=DNS:$1.blois.sportludique.fr,DNS:blois.sportludique.fr\"" \
+	-config /tmp/openssl.cnf
+echo "Generated $HOSTNAME.csr"
+
+ssh $2 "rm /tmp/openssl.cnf"
+
+scp $2:~/$host.csr .
+
+
+sudo openssl x509 -req -days 365 				\
+	-in ~/$host.csr 					\
+	-CA /usr/share/ssl/autorite/certificats/ca-blois.crt 	\
+	-CAkey /usr/share/ssl/autorite/cles/ca-blois.key 	\
+	-CAserial /usr/share/ssl/autorite/ca.srl 		\
+	-CAcreateserial 					\
+	-out ~/$host.crt 					\
+	-copy_extensions copy
+
+
+scp $host.crt $2:~
+

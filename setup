@@ -40,9 +40,10 @@ changelast() {
 mainaddress=$1
 manaaddress=""
 if [ $2 = "auto" ]; then
-	manaaddress=$(changelast "10.5.150.0" $(getoct mainaddress))
+	manaaddress=$(changelast "10.5.150.0" $(getoct $mainaddress))
 else
 	manaaddress=$2
+fi
 gateway=$(getgw $mainaddress)
 dns=172.28.33.53
 

@@ -7,10 +7,17 @@ fi
 
 host=$(ssh $2 "echo \$HOSTNAME")
 echo "host is: $host"
+echo "path to the server's key, if none leave empty"
+read path
+if [ -z $path ]; then
+	key="$host.key"
+	ssh $2 "openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:3072 \
+		  -out $key"
+	echo "Generated $key"
+else
+	key=$path
+fi
 
-ssh $2 "openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:3072 \
-	  -out \$HOSTNAME.key"
-echo "Generated $host.key"
 
 ssh $2 "cat >> /tmp/openssl.cnf <<EOF
 [ req ]
@@ -29,7 +36,7 @@ EOF"
 
 ssh $2 "openssl req 		\
 	-new -sha256 		\
-	-key \$HOSTNAME.key 	\
+	-key $key 	\
 	-out \$HOSTNAME.csr 	\
 	-addext \"subjectAltName=DNS:$1.blois.sportludique.fr,DNS:blois.sportludique.fr\"" \
 	-config /tmp/openssl.cnf
@@ -49,6 +56,7 @@ sudo openssl x509 -req -days 365 				\
 	-out ~/$host.crt 					\
 	-copy_extensions copy
 
+cat $host.crt /usr/share/ssl/autorite/certificats/sportludique-root.crt.pem > $host.pem
 
-scp $host.crt $2:~
+scp $host.pem $2:~
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 if [[ $# -ne 3 ]]; then
-	echo "usage: ./setup main-address mana-address HOSTNAME"
+	echo "usage: ./setup main-address [mana-address|auto] HOSTNAME"
 	exit
 fi
 
@@ -15,8 +15,34 @@ getgw() {
 	done
 }
 
+# 
+getoct() {
+	for (( i=${#1}; i >= 0; i-- )); do
+		if [ "${1:$i:1}" = "." ]; then
+			# last octet done
+			#echo "${1:0:$((i+1))}254"
+			echo "${1:$((i-${#1}+1))}"
+			break
+		fi 
+	done
+}
+
+changelast() {
+	for (( i=${#1}; i >= 0; i-- )); do
+		if [ "${1:$i:1}" = "." ]; then
+			# last octet done
+			echo "${1:0:$((i+1))}$2"
+			break
+		fi 
+	done
+}
+
 mainaddress=$1
-manaaddress=$2
+manaaddress=""
+if [ $2 = "auto" ]; then
+	manaaddress=$(changelast "10.5.150.0" $(getoct mainaddress))
+else
+	manaaddress=$2
 gateway=$(getgw $mainaddress)
 dns=172.28.33.53
 
